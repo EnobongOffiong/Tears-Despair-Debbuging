@@ -1,4 +1,4 @@
-package src.tddgame;
+package tddgame;
 
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;

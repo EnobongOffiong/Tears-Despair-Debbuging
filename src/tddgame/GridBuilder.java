@@ -1,6 +1,7 @@
-package src.tddgame;
+package tddgame;
 
 import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Random;
 
@@ -21,8 +22,74 @@ public class GridBuilder {
         Random random = new Random();
         int numberOfRows = random.nextInt(maxSize - minSize + 1) + minSize;
         int numberOfColumns = random.nextInt(maxSize - minSize + 1) + minSize;
-        return buildGrid(numberOfRows, numberOfColumns, random);
+
+        // Step 1: Fill grid with wall-only cells
+        List<Row> rows = new ArrayList<>();
+        for (int i = 0; i < numberOfRows; i++) {
+            List<Cell> cellRow = new ArrayList<>();
+            for (int j = 0; j < numberOfColumns; j++) {
+                cellRow.add(CellFactory.createWallCell());
+            }
+            rows.add(new Row(cellRow));
+        }
+
+        // Step 2: Carve a path from bottom-right to top-left (guaranteed)
+        int row = numberOfRows - 1;
+        int column = numberOfColumns - 1;
+
+        while (row != 0 || column != 0) {
+            List<Direction> options = new ArrayList<>();
+
+            if (row > 0) options.add(Direction.UP);
+            if (column > 0) options.add(Direction.LEFT);
+
+            Direction direction = options.get(random.nextInt(options.size()));
+            int newRow = row;
+            int newColumn = column;
+
+            if (direction == Direction.UP) newRow--;
+            else if (direction == Direction.LEFT) newColumn--;
+
+            Cell current = rows.get(row).getCells().get(column);
+            Cell next = rows.get(newRow).getCells().get(newColumn);
+
+            if (direction == Direction.UP) {
+                current.setUp(CellComponents.APERTURE);
+                next.setDown(CellComponents.APERTURE);
+            } else {
+                current.setLeft(CellComponents.APERTURE);
+                next.setRight(CellComponents.APERTURE);
+            }
+
+            row = newRow;
+            column = newColumn;
+        }
+
+        // Step 3: Mark (0,0) with EXIT on left
+        rows.get(0).getCells().get(0).setLeft(CellComponents.EXIT);
+        int exitRow = 0;
+
+        // Step 4 (optional): Add random apertures elsewhere
+        for (int i = 0; i < numberOfRows; i++) {
+            for (int j = 0; j < numberOfColumns; j++) {
+                Cell cell = rows.get(i).getCells().get(j);
+
+                if (i > 0 && random.nextBoolean()) {
+                    cell.setUp(CellComponents.APERTURE);
+                    rows.get(i - 1).getCells().get(j).setDown(CellComponents.APERTURE);
+                }
+
+                if (j < numberOfColumns - 1 && random.nextBoolean()) {
+                    cell.setRight(CellComponents.APERTURE);
+                    rows.get(i).getCells().get(j + 1).setLeft(CellComponents.APERTURE);
+                }
+            }
+        }
+
+        return new Grid(rows, exitRow);
     }
+
+
 
     /**
      * Builds a grid with the specified dimensions.

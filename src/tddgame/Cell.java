@@ -1,4 +1,4 @@
-package src.tddgame;
+package tddgame;
 
 /**
  * Represents a cell in the game grid.

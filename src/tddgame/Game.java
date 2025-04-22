@@ -1,4 +1,6 @@
-package src.tddgame;
+package tddgame ;
+
+import java.util.List;
 
 public class Game {
     private Grid grid;
@@ -15,20 +17,14 @@ public class Game {
         }
         
         this.grid = grid;
-        this.player = new Player(grid.getExitRow(), grid.getNumberOfColumns() - 1);
+        this.player = new Player(grid.getNumberOfRows() - 1, grid.getNumberOfColumns() - 1);
+
 
         System.out.println("Initial Grid:");
         printGridWithPlayer();
 
-        Direction[] moves = {
-            Direction.UP,
-            Direction.UP,
-            Direction.LEFT,
-            Direction.DOWN,
-            Direction.RIGHT,
-            Direction.LEFT,
-            Direction.LEFT
-        };
+        List<Direction> moves = MazeSolver.findPath(grid, player.getRow(), player.getColumn());
+
 
         for (Direction direction : moves) {
             simulateMove(direction);
@@ -47,7 +43,7 @@ public class Game {
      * @param direction The direction to move in
      */
     private void simulateMove(Direction direction) {
-        System.out.println("▶ Moving: " + direction);
+        System.out.println(" Moving: " + direction);
         player.move(direction, grid);
         printGridWithPlayer();
     }
@@ -82,11 +78,8 @@ public class Game {
         System.out.println();
     }
 
-    /**
-     * Main entry point for the game.
-     * Creates a random grid and starts the game.
-     *
-     * @param args Command line arguments (not used)
-     */
-    
+    public static void main(String[] args) {
+        Grid grid = GridBuilder.buildRandomGrid();
+        new Game(grid);  
+    }
 }
