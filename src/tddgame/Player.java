@@ -1,4 +1,4 @@
-package tddgame;
+package src.tddgame;
 
 /**
  * Represents a player 

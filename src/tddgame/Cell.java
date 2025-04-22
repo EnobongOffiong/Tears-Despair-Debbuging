@@ -1,6 +1,4 @@
-package tddgame;
-
-import java.util.List;
+package src.tddgame;
 
 /**
  * Represents a cell in the game grid.

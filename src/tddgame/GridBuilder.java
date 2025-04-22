@@ -1,4 +1,4 @@
-package tddgame;
+package src.tddgame;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ public class GridBuilder {
         }
 
 
-        int exitRow = random.nextInt(numberOfRows);
+        int exitRow = 0;
         rows.get(exitRow).getCells().get(0).setLeft(CellComponents.EXIT);
 
 

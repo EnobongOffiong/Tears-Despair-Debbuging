@@ -1,4 +1,4 @@
-package tddgame;
+package src.tddgame;
 
 public class Game {
     private Grid grid;
@@ -88,8 +88,5 @@ public class Game {
      *
      * @param args Command line arguments (not used)
      */
-    public static void main(String[] args) {
-        Grid randomGrid = GridBuilder.buildRandomGrid();
-        new Game(randomGrid);
-    }
+    
 }

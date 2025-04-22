@@ -1,4 +1,4 @@
-package tddgame;
+package src.tddgame;
 
 /**
  * Factory class for creating different types of cells.

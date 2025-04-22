@@ -1,4 +1,4 @@
-package tddgame;
+package src.tddgame;
 /**
  * represents the possible directions the player can move
  */

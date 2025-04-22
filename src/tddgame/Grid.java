@@ -1,6 +1,5 @@
-package tddgame;
+package src.tddgame;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
