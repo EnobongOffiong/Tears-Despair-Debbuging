@@ -1,100 +1,85 @@
-package tddgame;
+package src.tddgame;
 
-/**
- * Represents a player 
- * The player can move within the grid according to apertures
- */
+
+import java.util.List;
+
 public class Player {
-    private int row;
-    private int column;
+    private Row currentRow;
+    private Cell currentCell;
 
-    /**
-     * Constructs a new Player 
-     * @param row The initial row position
-     * @param column The initial column position
-     * @throws IllegalArgumentException if position is negative
-     */
-    public Player(int row, int column) {
-        if (row < 0 || column < 0) {
-            throw new IllegalArgumentException("Player position cannot be negative");
+    public Player(Row currentRow, Cell currentCell) {
+        if (currentRow == null || currentCell == null) {
+            throw new IllegalArgumentException("Row and Cell cannot be null.");
         }
-        this.row = row;
-        this.column = column;
+        this.currentRow = currentRow;
+        this.currentCell = currentCell;
     }
 
-    /**
-     * Gets the player's current row position
-     * @return The row position
-     */
-    public int getRow() {
-        return row;
+    public Row getCurrentRow() {
+        return currentRow;
     }
 
-    /**
-     * Gets the player's current col position
-     * @return The column position
-     */
-    public int getColumn() {
-        return column;
+    public Cell getCurrentCell() {
+        return currentCell;
     }
 
-    /**
-     * Moves the player in the specified direction if possible
-     * Movement is only allowed through apertures or the exit
-     *
-     * @param direction The direction to move in
-     * @param grid The game grid
-     * @throws IllegalArgumentException if direction or grid is null
-     */
-    public void move(Direction direction, Grid grid) {
-        if (direction == null || grid == null) {
-            throw new IllegalArgumentException("Direction and grid cannot be null");
-        }
-        
-        int newRow = row;
-        int newColumn = column;
+    public boolean move(Movement direction, Grid grid) {
+        if (direction == null || grid == null) return false;
 
-        Cell current = grid.getCell(row, column);
+        List<Row> rows = grid.getRows();
+        int rowIndex = rows.indexOf(currentRow);
+        int colIndex = currentRow.getCells().indexOf(currentCell);
+
         switch (direction) {
             case UP:
-                if (row > 0 && current.getUp() == CellComponents.APERTURE) newRow--;
+                if (rowIndex > 0 && currentCell.getUp() == CellComponents.APERTURE) {
+                    Cell above = rows.get(rowIndex - 1).getCells().get(colIndex);
+                    if (above.getDown() == CellComponents.APERTURE) {
+                        currentRow = rows.get(rowIndex - 1);
+                        currentCell = above;
+                        return true;
+                    }
+                }
                 break;
             case DOWN:
-                if (row < grid.getNumberOfRows() - 1 && current.getDown() == CellComponents.APERTURE) newRow++;
+                if (rowIndex < rows.size() - 1 && currentCell.getDown() == CellComponents.APERTURE) {
+                    Cell below = rows.get(rowIndex + 1).getCells().get(colIndex);
+                    if (below.getUp() == CellComponents.APERTURE) {
+                        currentRow = rows.get(rowIndex + 1);
+                        currentCell = below;
+                        return true;
+                    }
+                }
                 break;
             case LEFT:
-                if (column > 0 && current.getLeft() == CellComponents.APERTURE) newColumn--;
-                else if (column == 0 && current.getLeft() == CellComponents.EXIT)
-                    System.out.println("Player has escaped!");
+                if (colIndex > 0 && currentCell.getLeft() == CellComponents.APERTURE) {
+                    Cell left = currentRow.getCells().get(colIndex - 1);
+                    if (left.getRight() == CellComponents.APERTURE || left.getRight() == CellComponents.EXIT) {
+                        currentCell = left;
+                        return true;
+                    }
+                }
+                // check for EXIT on left side
+                if (colIndex == 0 && currentCell.getLeft() == CellComponents.EXIT) {
+                    return true; // agent has escaped!
+                }
                 break;
             case RIGHT:
-                if (column < grid.getNumberOfColumns() - 1 && current.getRight() == CellComponents.APERTURE) newColumn++;
+                if (colIndex < currentRow.getCells().size() - 1 && currentCell.getRight() == CellComponents.APERTURE) {
+                    Cell right = currentRow.getCells().get(colIndex + 1);
+                    if (right.getLeft() == CellComponents.APERTURE) {
+                        currentCell = right;
+                        return true;
+                    }
+                }
                 break;
         }
-        row = newRow;
-        column = newColumn;
+
+        return false;
     }
 
-    /**
-     * Checks if the player has reached the exit
-     *
-     * @param grid The game grid
-     * @return true if the player has reached the exit, false otherwise
-     * @throws IllegalArgumentException if grid is null
-     */
-    public boolean hasReachedExit(Grid grid) {
-        if (grid == null) {
-            throw new IllegalArgumentException("Grid cannot be null");
-        }
-        return column == 0 && grid.getCell(row, column).getLeft() == CellComponents.EXIT;
-    }
-
-    /**
-     * Returns a string the player
-     * @return A string representing the player's position
-     */
     @Override
     public String toString() {
-        return String.format("Player [row=%d, column=%d]", row, column);
+        return "Player [currentCell=" + currentCell + ", currentRow=" + currentRow + "]";
     }
 }

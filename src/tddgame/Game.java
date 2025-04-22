@@ -1,85 +1,120 @@
-package tddgame ;
+package src.tddgame ;
 
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Game {
     private Grid grid;
-    private Player player;
 
-    /**
-     * Constructs a new game with the specified grid.
-     * Places the player at the bottom-right corner of the grid.
-     * @param grid The grid for the game
-     */
     public Game(Grid grid) {
-        if (grid == null) {
-            throw new IllegalArgumentException("Grid cannot be null");
-        }
-        
         this.grid = grid;
-        this.player = new Player(grid.getNumberOfRows() - 1, grid.getNumberOfColumns() - 1);
+    }
 
+    public Game(int size) {
+        this.grid = createRandomGrid(size);
+    }
 
-        System.out.println("Initial Grid:");
-        printGridWithPlayer();
+    public Grid getGrid() {
+        return grid;
+    }
 
-        List<Direction> moves = MazeSolver.findPath(grid, player.getRow(), player.getColumn());
+    public void setGrid(Grid grid) {
+        this.grid = grid;
+    }
 
+    public boolean play(Movement direction, Player player) {
+        if (player == null || direction == null || grid == null) return false;
+        return player.move(direction, grid);
+    }
 
-        for (Direction direction : moves) {
-            simulateMove(direction);
-            if (player.hasReachedExit(grid)) {
-                System.out.println("The player has escaped successfully!");
-                return;
+    public Grid createRandomGrid(int size) {
+        if (size < 3 || size > 7) return null;
+
+        Random rand = new Random();
+        Cell[][] gridArray = new Cell[size][size];
+
+        // Initialize grid with WALLs
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                gridArray[i][j] = new Cell(CellComponents.WALL, CellComponents.WALL,
+                        CellComponents.WALL, CellComponents.WALL);
             }
         }
 
-        System.out.println("The player did not reach the EXIT. They are still trapped!");
-    }
+        // Set EXIT at [0][0] on the left
+        gridArray[0][0].setLeft(CellComponents.EXIT);
 
-    /**
-     * Simulates a player move in the specified direction and prints the updated grid.
-     *
-     * @param direction The direction to move in
-     */
-    private void simulateMove(Direction direction) {
-        System.out.println(" Moving: " + direction);
-        player.move(direction, grid);
-        printGridWithPlayer();
-    }
+        // Carve a random path from bottom-right to top-left
+        int i = size - 1;
+        int j = size - 1;
 
-    /**
-     * Prints the current state of the grid with the player's position.
-     * 'E' denotes EXIT, 'A' denotes AGENT, 'W' denotes WALL, and 'S' denotes SPACE with APERTURE.
-     */
-    private void printGridWithPlayer() {
-        int playerRow = player.getRow();
-        int playerColumn = player.getColumn();
+        while (i > 0 || j > 0) {
+            int dir = rand.nextInt((i > 0 && j > 0) ? 2 : 1); // 0 = up, 1 = left
+            if (j > 0 && (dir == 1 || i == 0)) {
+                // Move left
+                gridArray[i][j].setLeft(CellComponents.APERTURE);
+                gridArray[i][j - 1].setRight(CellComponents.APERTURE);
+                j--;
+            } else {
+                // Move up
+                gridArray[i][j].setUp(CellComponents.APERTURE);
+                gridArray[i - 1][j].setDown(CellComponents.APERTURE);
+                i--;
+            }
+        }
 
-        for (int i = 0; i < grid.getNumberOfRows(); i++) {
-            for (int j = 0; j < grid.getNumberOfColumns(); j++) {
-                Cell cell = grid.getCell(i, j);
+        // Randomly fill remaining directions with valid components
+        for (i = 0; i < size; i++) {
+            for (j = 0; j < size; j++) {
+                Cell cell = gridArray[i][j];
 
-                if (i == playerRow && j == playerColumn) {
-                    System.out.print("A ");
-                } else if (cell.getLeft() == CellComponents.EXIT && j == 0) {
-                    System.out.print("E ");
-                } else {
-                    // Check if this cell has any apertures to determine see if its a space or wall
-                    if (cell.hasAperture()) {
-                        System.out.print("S ");
-                    } else {
-                        System.out.print("W ");
-                    }
+                // Ensure at least one APERTURE
+                if (cell.getLeft() != CellComponents.APERTURE &&
+                    cell.getRight() != CellComponents.APERTURE &&
+                    cell.getUp() != CellComponents.APERTURE &&
+                    cell.getDown() != CellComponents.APERTURE &&
+                    !(i == 0 && j == 0)) {
+                    cell.setRight(CellComponents.APERTURE); // add an opening
+                }
+
+                // Prevent any EXITs except [0][0]
+                if (!(i == 0 && j == 0)) {
+                    if (cell.getLeft() == CellComponents.EXIT) cell.setLeft(CellComponents.WALL);
+                    if (cell.getRight() == CellComponents.EXIT) cell.setRight(CellComponents.WALL);
+                    if (cell.getUp() == CellComponents.EXIT) cell.setUp(CellComponents.WALL);
+                    if (cell.getDown() == CellComponents.EXIT) cell.setDown(CellComponents.WALL);
                 }
             }
-            System.out.println();
         }
-        System.out.println();
+
+        // Convert to List<Row>
+        List<Row> rows = new ArrayList<>();
+        for (i = 0; i < size; i++) {
+            List<Cell> cellRow = new ArrayList<>();
+            for (j = 0; j < size; j++) {
+                cellRow.add(gridArray[i][j]);
+            }
+            rows.add(new Row(cellRow));
+        }
+
+        return new Grid(rows);
     }
 
-    public static void main(String[] args) {
-        Grid grid = GridBuilder.buildRandomGrid();
-        new Game(grid);  
+
+    private CellComponents randomComponent(Random rand, boolean allowExit) {
+        int choice = allowExit ? rand.nextInt(3) : rand.nextInt(2);
+        return switch (choice) {
+            case 0 -> CellComponents.WALL;
+            case 1 -> CellComponents.APERTURE;
+            case 2 -> CellComponents.EXIT;
+            default -> CellComponents.WALL;
+        };
+    }
+
+    @Override
+    public String toString() {
+        return "Game [grid=" + grid + "]";
     }
 }
