@@ -1,4 +1,4 @@
-package src.tddgame;
+package tddgame;
 
 /**
  * Enum representing the different components a cell can have

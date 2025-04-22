@@ -1,4 +1,4 @@
-package src.tddgame;
+package tddgame;
 
 import java.util.List;
 

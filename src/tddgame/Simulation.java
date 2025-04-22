@@ -1,4 +1,4 @@
-package src.tddgame;
+package tddgame;
 
 public class Simulation {
 
